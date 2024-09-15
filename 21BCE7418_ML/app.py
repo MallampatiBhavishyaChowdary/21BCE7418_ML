@@ -21,3 +21,30 @@ from flask import request
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
 db.init_app(app) #commit now.
 
+from sentence_transformers import SentenceTransformer
+from models import Document
+import numpy as np
+
+model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
+
+@app.route('/search', methods=['POST'])
+def search():
+    data = request.get_json()
+    query_text = data.get("text", "")
+    top_k = data.get("top_k", 5)
+    threshold = data.get("threshold", 0.8)
+
+    # Encode the query
+    query_embedding = model.encode(query_text)
+
+    # Retrieve all documents and calculate similarity
+    documents = Document.query.all()
+    results = []
+    for doc in documents:
+        similarity = np.dot(query_embedding, np.array(doc.embedding))
+        if similarity > threshold:
+            results.append({"doc_id": doc.id, "similarity": similarity})
+
+    # Sort by similarity and return top_k results
+    results = sorted(results, key=lambda x: x['similarity'], reverse=True)[:top_k]
+    return jsonify(results), 200
