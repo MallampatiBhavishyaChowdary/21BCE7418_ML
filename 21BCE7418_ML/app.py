@@ -65,4 +65,19 @@ def search():
     cache_query_result(user_id, query_text, results)
     return jsonify(results), 200
 
+@app.before_request
+def rate_limiter():
+    user_id = request.json.get("user_id")
+    user = User.query.filter_by(user_id=user_id).first()
+    
+    if not user:
+        user = User(user_id=user_id, request_count=1)
+        db.session.add(user)
+    else:
+        if user.request_count >= 5:
+            return jsonify({"error": "Rate limit exceeded"}), 429
+        user.request_count += 1
+    
+    db.session.commit()
+
 
