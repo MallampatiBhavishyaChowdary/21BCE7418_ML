@@ -14,3 +14,10 @@ if __name__ == "__main__":
 @app.route('/health', methods=['GET'])
 def health_check():
     return jsonify({"status": "API is active!"}), 200. #Commit
+#from models.py for DB SQLAlchemy
+from models import db
+from flask import request
+
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///db.sqlite3'
+db.init_app(app) #commit now.
+
