@@ -48,3 +48,21 @@ def search():
     # Sort by similarity and return top_k results
     results = sorted(results, key=lambda x: x['similarity'], reverse=True)[:top_k]
     return jsonify(results), 200
+from cache import get_cached_query, cache_query_result
+
+@app.route('/search', methods=['POST'])
+def search():
+    data = request.get_json()
+    query_text = data.get("text", "")
+    user_id = data.get("user_id")
+    
+    cached_result = get_cached_query(user_id, query_text)
+    if cached_result:
+        return jsonify(cached_result), 200
+    
+    # Search logic (same as before)
+
+    cache_query_result(user_id, query_text, results)
+    return jsonify(results), 200
+
+
