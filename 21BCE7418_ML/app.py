@@ -80,4 +80,19 @@ def rate_limiter():
     
     db.session.commit()
 
+from utils import log_request
+import time
+
+@app.route('/search', methods=['POST'])
+def search():
+    start_time = time.time()
+    
+    # Existing logic
+    
+    inference_time = time.time() - start_time
+    log_request(user_id, "/search", inference_time)
+    
+    return jsonify(results), 200
+
+
 
